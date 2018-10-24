@@ -31,4 +31,9 @@ public class ClientPackage {
         this.client = client;
     }
 
+    @Override
+    public String toString() {
+        return "ClientPackage{" + "data=" + data + ", client=" + client + '}';
+    }
+
 }

@@ -28,7 +28,6 @@ public class UDPServer extends Thread {
                                 
                 ClientPackage clientPackage = UDPServer.receberPacote(serverSocket);  
                 //new client
-                System.out.println("clientPackage: "+clientPackage);
                 UDPClient client = clientPackage.getClient();
                 System.out.println(client+"\n");
                 
@@ -39,6 +38,7 @@ public class UDPServer extends Thread {
                 switch (recebido.trim().toLowerCase()) {
                     case "upload":
                         
+                        UDPServer.enviarPacote(serverSocket, client, "auth".getBytes());                            
                         System.out.println("Upload request. Waiting filename...");
 
                         String file = new String(UDPServer.receberPacote(serverSocket).getData());
@@ -46,7 +46,7 @@ public class UDPServer extends Thread {
                         
                         byte[] bufferEntrada =  UDPServer.receberPacote(serverSocket).getData();
                         
-                        FileOutputStream out = new FileOutputStream( UDPServer.UPLOAD_FOLDER  + file.trim(), true);
+                        FileOutputStream out = new FileOutputStream( UDPServer.UPLOAD_FOLDER  + file.trim(), false);
 
                         while (!(new String(bufferEntrada)).trim().equals("finish")) {
                             out.write(bufferEntrada);
@@ -62,7 +62,7 @@ public class UDPServer extends Thread {
                         mensagem = "Upload successfully";
                         break;
                     case "download":
-                        System.out.println("Upload request. Waiting filename...");
+                        System.out.println("Download request. Waiting filename...");
 
                         ClientPackage downloadPackage = UDPServer.receberPacote(serverSocket);                      
                         file = new String(downloadPackage.getData());
@@ -94,7 +94,6 @@ public class UDPServer extends Thread {
 
                         //send confirmation of last buffer
                         UDPServer.enviarPacote(serverSocket, downloadPackage.getClient(), "finish".getBytes());
-                        serverSocket.close();
                         
                         break;
 
@@ -103,7 +102,7 @@ public class UDPServer extends Thread {
                         File[] listOfFiles = folder.listFiles();
 
                         for (int i = 0; i < listOfFiles.length; i++) {
-                            mensagem += (i + 1) + ": " + listOfFiles[i].getName() + "\n";
+                            mensagem += listOfFiles[i].getName() + ";";
                         }
 
                         break;
@@ -114,10 +113,11 @@ public class UDPServer extends Thread {
                         mensagem += "Digit 'list' to see all files\n";
                         break;
                 }
-                
+               
                 UDPServer.enviarPacote(serverSocket, client, mensagem.getBytes());
             }
         } catch (Exception e) {
+            System.out.println("500 - SERVER ERROR");
             e.printStackTrace();
         }
     }
@@ -131,6 +131,8 @@ public class UDPServer extends Thread {
             return true;
         }
         catch(Exception e) {
+            System.out.println("500 - SERVER ERROR");
+            e.printStackTrace();
             return false;
         }
     } 
