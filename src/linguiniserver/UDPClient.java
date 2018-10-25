@@ -41,4 +41,9 @@ public class UDPClient {
                "IP:" + this.getIpCliente().getHostAddress() +"\n"+
                "PORT: " + this.getPortaCliente();
     }
+    
+    public boolean equals(UDPClient client){
+        return this.getIpCliente().equals(client.getIpCliente()) 
+                && this.getPortaCliente() == client.getPortaCliente();
+    }
 }

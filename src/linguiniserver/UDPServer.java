@@ -3,12 +3,14 @@ package linguiniserver;
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.util.ArrayList;
 
 public class UDPServer extends Thread {
     
-    public static final int PORT = 5000;
-    public static final int TAM_BUFFER = 4096;
-    public static final String UPLOAD_FOLDER= "uploads/";
+    private static final int PORT = 5000;
+    private static final int TAM_BUFFER = 4096;
+    private static final String UPLOAD_FOLDER= "uploads/";
+    private static ArrayList<UDPClient> CLIENTS = new ArrayList<>();
 
     @Override
     public void run() {
@@ -58,8 +60,7 @@ public class UDPServer extends Thread {
                         }
 
                         out.close();
-
-                        mensagem = "Upload successfully";
+                        
                         break;
                     case "download":
                         System.out.println("Download request. Waiting filename...");
@@ -98,6 +99,7 @@ public class UDPServer extends Thread {
                         break;
 
                     case "list":
+                        System.out.println("List request. Sending list of files in "+UDPServer.UPLOAD_FOLDER+"...");
                         File folder = new File(UDPServer.UPLOAD_FOLDER);
                         File[] listOfFiles = folder.listFiles();
 
@@ -106,16 +108,54 @@ public class UDPServer extends Thread {
                         }
 
                         break;
+                    case "receiver":  
+                        System.out.println("Receiver request");
+                        
+                        if(CLIENTS.isEmpty()) {
+                            UDPServer.CLIENTS.add(client);     
+                        }
+                        else {
+                            for (UDPClient udpClient : CLIENTS) {
+                                if(!udpClient.equals(client)) {
+                                    UDPServer.CLIENTS.add(client);     
+                                }
+                            }
+                        }
+                        System.out.println("Client add client into list of receivers of message!");
+                        break;
+                    case "message": 
+                        
+                        UDPServer.enviarPacote(serverSocket, client, "auth".getBytes());
+                        System.out.println("Message request. Waiting message...");
+                            
+                        ClientPackage messagePackage = UDPServer.receberPacote(serverSocket);                      
+                        String message = new String(messagePackage.getData());
+                        
+                        System.out.println("Message: " + message);
+                        
+                        for (UDPClient udpClient : CLIENTS) {
+                            if(!client.equals(udpClient)) {
+                                System.out.println("Sending for " + udpClient+"...");
+                                UDPServer.enviarPacote(serverSocket, udpClient, message.getBytes());
+                            }
+                            else {
+                                System.out.println("Can't sent the message to sender!");
+                            }
+                        }          
+                        
+                        System.out.println("Message sent to "+CLIENTS.size()+" client(s).");
+                        break;
                     default:
                         mensagem = "Help:\n";
                         mensagem += "Digit 'upload' to send a file\n";
                         mensagem += "Digit 'download' to download a file\n";
                         mensagem += "Digit 'list' to see all files\n";
+
+                        UDPServer.enviarPacote(serverSocket, client, mensagem.getBytes());
                         break;
                 }
-               
-                UDPServer.enviarPacote(serverSocket, client, mensagem.getBytes());
             }
+            
         } catch (Exception e) {
             System.out.println("500 - SERVER ERROR");
             e.printStackTrace();
