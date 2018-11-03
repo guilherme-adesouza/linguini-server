@@ -4,13 +4,14 @@ import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class UDPServer extends Thread {
     
     private static final int PORT = 5000;
     private static final int TAM_BUFFER = 4096;
     private static final String UPLOAD_FOLDER= "uploads/";
-    private static ArrayList<UDPClient> CLIENTS = new ArrayList<>();
+    private static CopyOnWriteArrayList<UDPClient> CLIENTS = new CopyOnWriteArrayList<>();
 
     @Override
     public void run() {
@@ -106,6 +107,8 @@ public class UDPServer extends Thread {
                         for (int i = 0; i < listOfFiles.length; i++) {
                             mensagem += listOfFiles[i].getName() + ";";
                         }
+                        
+                        UDPServer.enviarPacote(serverSocket, client, mensagem.getBytes());
 
                         break;
                     case "receiver":  
@@ -129,7 +132,7 @@ public class UDPServer extends Thread {
                         System.out.println("Message request. Waiting message...");
                             
                         ClientPackage messagePackage = UDPServer.receberPacote(serverSocket);                      
-                        String message = new String(messagePackage.getData());
+                        String message = new String(messagePackage.getData()).trim();
                         
                         System.out.println("Message: " + message);
                         

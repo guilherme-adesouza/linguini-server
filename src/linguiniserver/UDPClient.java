@@ -7,6 +7,8 @@ import java.net.InetAddress;
  * @author guilherme-souza
  */
 public class UDPClient {
+    private static final int LISTENER_PORT = 7070;
+    
     private InetAddress ipCliente;
     private int portaCliente;
     
@@ -44,6 +46,6 @@ public class UDPClient {
     
     public boolean equals(UDPClient client){
         return this.getIpCliente().equals(client.getIpCliente()) 
-                && this.getPortaCliente() == client.getPortaCliente();
+                && this.getPortaCliente() == UDPClient.LISTENER_PORT;
     }
 }
